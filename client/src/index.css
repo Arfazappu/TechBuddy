@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* extra styling */
+.grad-text{
+    font-size: 72px;
+  background: -webkit-linear-gradient(#eee, #333);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  padding-bottom:9px ;
+}
+
+.logo-text{
+  background: -webkit-linear-gradient(290deg, rgba(2,0,36,1) 0%, rgba(93,93,254,1) 0%, rgba(101,53,222,1) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+
+.grad-btn{
+    background: -webkit-linear-gradient(290deg, rgba(2,0,36,1) 0%, rgba(93,93,254,1) 0%, rgba(101,53,222,1) 100%);
+    background:linear-gradient(290deg, rgba(2,0,36,1) 0%, rgba(93,93,254,1) 0%, rgba(101,53,222,1) 100%);
+}
+
+.grad-btn:hover{
+    background: #4B4ACF;
+}
+
+.feat-text{
+    background: -webkit-linear-gradient(290deg, rgba(2,0,36,1) 0%, rgba(93,93,254,1) 0%, rgba(101,53,222,1) 100%);
+}
+
+.arrow-animate .arrow{
+  transition: all linear 0.3s;
+}
+.arrow-animate:hover .arrow{
+  transform: rotate(45deg);
+}
+ 
