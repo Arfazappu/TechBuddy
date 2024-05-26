@@ -1,90 +1,97 @@
 import React, { useState, useEffect } from "react";
-import { Modal, message } from "antd";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import TShirtImage from "../assets/tshirtbg.png";
-import CapImage from "../assets/capbg.png";
-import BagImage from "../assets/bagbg.png";
-import BottleImage from "../assets/bottlebg.png";
-import headPhone from "../assets/hdbg.png";
-import PointBar from "../components/PointBar";
-import Point from "../assets/star.png";
-import { userId } from "../config";
+import { Spin, Modal } from "antd";
+import { CheckCircle, XCircle } from "lucide-react";
+import AceEditor from "react-ace";
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-monokai";
 import { useSnackbar } from "notistack";
-import { Spin } from "antd";
+import Point from "../assets/star.png";
 
-function ExchangePoints() {
-  const [selectedGoodie, setSelectedGoodie] = useState(null);
+
+const ResultPage = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [assessment, setAssessment] = useState(null);
+  const [loading, setLoading] = useState(true);
+  //   const [error, setError] = useState(null);
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [address, setAddress] = useState("");
   const { enqueueSnackbar } = useSnackbar();
-  const [loading, setLoading] = useState(false);
 
-  const goodies = [
-    { name: "Headphone", image: headPhone, cost: 5000 },
-    { name: "T-Shirt", image: TShirtImage, cost: 1000 },
-    { name: "Bag", image: BagImage, cost: 800 },
-    { name: "Cap", image: CapImage, cost: 500 },
-    { name: "Bottle", image: BottleImage, cost: 300 },
-    // Add more goodies as needed
-  ];
-
-  const handleExchange = (goodie) => {
-    setSelectedGoodie(goodie);
-    setIsModalVisible(true);
-  };
-
-  const handleModalOk = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        "http://localhost:5555/api/exchange/goodies",
-        {
-          userId,
-          goodieName: selectedGoodie.name,
-          goodiePoints: selectedGoodie.cost,
-          address,
-        }
-      );
-
-      console.log(response.status);
-
-      if (response.status === 200) {
-        enqueueSnackbar(
-          "Goodie exchanged successfully. Check your email for details.",
-          { variant: "success" }
+  useEffect(() => {
+    const fetchAssessment = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5555/api/assessments/result/${id}`
         );
-      } else {
-        enqueueSnackbar("Failed to exchange goodie. Please try again.", {
-          variant: "error",
-        });
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        enqueueSnackbar("Insufficient points.", { variant: "error" });
-      } else if (error.response && error.response.status === 404) {
-        enqueueSnackbar("User not found. Please login.", { variant: "error" });
-      } else {
+        setAssessment(response.data);
+      } catch (error) {
+        // setError("Error fetching assessment data");
         enqueueSnackbar("Something went wrong. Please try again.", {
           variant: "error",
         });
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-      setIsModalVisible(false);
-      setAddress('')
+    };
+
+    fetchAssessment();
+  }, [id]);
+
+  const getOptionStyle = (option, correctAnswer, userAnswer) => {
+    if (option === correctAnswer) {
+      return { backgroundColor: "lightgreen" };
+    } else if (option === userAnswer) {
+      return { backgroundColor: "lightcoral" };
+    } else {
+      return {};
     }
   };
 
-  const handleModalCancel = () => {
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+    navigate("/dashboard");
+  };
+
+  const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-  return (
-    <div className="h-screen w-full bg-gray-900 p-8 pt-0 overflow-y-scroll">
-      <PointBar />
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900">
+        <Spin size="large" />
+      </div>
+    );
+  }
 
+  //   if (error) {
+  //     return (
+  //       <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+  //         {error}
+  //       </div>
+  //     );
+  //   }
+
+  if (!assessment) {
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-900 text-white">
+        No assessment data found
+      </div>
+    );
+  }
+
+  const { quizQuestions, practiceQuestions } = assessment.questions;
+
+  return (
+    <div className="relative h-screen bg-gray-900 overflow-x-hidden p-8 pt-0">
       <div
-        className="fixed top-0 right-0 max-w-6xl mx-auto h-0 pointer-events-none"
+        className="relative max-w-6xl mx-auto h-0 pointer-events-none"
         aria-hidden="true"
       >
         <svg
@@ -115,70 +122,122 @@ function ExchangePoints() {
         </svg>
       </div>
 
-      <div className=" relative flex flex-wrap justify-start pt-20">
-        {goodies.map((goodie) => (
-          <div
-            key={goodie.name}
-            className="m-4 p-4 bg-gray-200 rounded-lg shadow-md w-52"
-          >
-            <img
-              src={goodie.image}
-              alt={goodie.name}
-              className="w-32 h-32 mx-auto"
-            />
-            <p className="text-center mt-2 font-semibold">{goodie.name}</p>
-            <p className="text-center flex items-center justify-center gap-1">
-              Cost: {goodie.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
+      <div className="relative max-w-4xl mx-auto pt-8">
+        <h2 className="text-2xl text-white mb-4">Quiz Questions</h2>
+        {quizQuestions.map((question) => (
+          <div key={question._id} className="mb-6 bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-white mb-2">{question.question}</h3>
+            <ul className="list-none">
+              {question.options.map((option) => (
+                <li
+                  key={option}
+                  className="p-2 rounded-lg text-white"
+                  style={getOptionStyle(
+                    option,
+                    question.correctAnswer,
+                    question.userAnswer
+                  )}
+                >
+                  {option}
+                </li>
+              ))}
+            </ul>
+            {/* <p className="text-white mt-2">
+              User Answer: {question.userAnswer} -{" "}
+              {question.userAnswer === question.correctAnswer ? (
+                <CheckCircle className="inline-block text-green-500" />
+              ) : (
+                <XCircle className="inline-block text-red-500" />
+              )}
+            </p> */}
+
+            <p className="text-white mt-2">
+              Correct Answer: {question.correctAnswer} -{" "}
+              <CheckCircle className="inline-block text-green-500" />
             </p>
-            <button
-              onClick={() => handleExchange(goodie)}
-              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md w-full"
-            >
-              Exchange
-            </button>
           </div>
         ))}
+
+        <h2 className="text-2xl text-white mb-4">Practice Questions</h2>
+        {practiceQuestions.map((question) => (
+          <div key={question._id} className="mb-6 bg-gray-800 p-4 rounded-lg">
+            <h3 className="text-white mb-2">{question.question}</h3>
+            <p className="text-white mb-2">User Answer:</p>
+            <AceEditor
+              mode="javascript"
+              theme="monokai"
+              name={`userAnswer-${question._id}`}
+              value={question.userAnswer}
+              readOnly
+              width="100%"
+              height="200px"
+              setOptions={{
+                useWorker: false,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+            />
+            <p className="text-white mt-4 mb-2">Example Answer:</p>
+            <AceEditor
+              mode="javascript"
+              theme="monokai"
+              name={`exampleAnswer-${question._id}`}
+              value={question.exampleAnswer}
+              readOnly
+              width="100%"
+              height="200px"
+              setOptions={{
+                useWorker: false,
+                showLineNumbers: true,
+                tabSize: 2,
+              }}
+            />
+            <p className="text-white mt-4 flex items-center gap-1 ">Points earned:<img src={Point} alt="" className="w-[20px] h-[20px]" /> {question.points}</p>
+          </div>
+        ))}
+
+        <h2 className="text-2xl text-white mb-4">Summary</h2>
+        <div className="bg-gray-800 p-6 rounded-lg">
+          <div className="flex flex-col space-y-4">
+            <div className="flex justify-between text-lg text-white">
+              <span className="font-medium">Topic:</span>
+              <span>{assessment.topic}</span>
+            </div>
+            <div className="flex justify-between text-lg text-white">
+              <span className="font-medium">Time Taken:</span>
+              <span>{assessment.timeTaken}</span>
+            </div>
+            <div className="flex justify-between text-lg text-white">
+              <span className="font-medium">Difficulty:</span>
+              <span>{assessment.difficulty}</span>
+            </div>
+            <div className="flex justify-between text-lg text-white">
+              <span className="font-medium">Total Points Earned:</span>
+              <span className="flex items-center gap-1"><img src={Point} alt="" className="w-[20px] h-[20px]" /> {assessment.totalPoints}</span>
+            </div>
+          </div>
+        </div>
+
+        <button
+          onClick={showModal}
+          className="mt-6 px-4 py-2 bg-blue-600 text-white rounded-lg"
+        >
+          Go to Dashboard
+        </button>
       </div>
 
       <Modal
-        title="Confirm Exchange"
+        title="Confirm"
         open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Yes"
+        cancelText="No"
       >
-        {!loading ? (
-          <div className="text-center">
-            <img
-              src={selectedGoodie?.image}
-              alt={selectedGoodie?.name}
-              className="w-40 h-40 mx-auto mb-4"
-            />
-            <p>{selectedGoodie?.name}</p>
-            <p className="flex items-center justify-center">
-              Cost: {selectedGoodie?.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
-            </p>
-            <p>Are you sure you want to exchange?</p>
-            <input
-              type="text"
-              placeholder="Enter your address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full p-2 mt-4 border border-gray-300 rounded-md"
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center">
-            <Spin size="large" />
-            <p className="mt-4">
-              Processing your order
-            </p>
-          </div>
-        )}
+        <p>Are you sure you want to go to the dashboard?</p>
       </Modal>
     </div>
   );
-}
+};
 
-export default ExchangePoints;
+export default ResultPage;

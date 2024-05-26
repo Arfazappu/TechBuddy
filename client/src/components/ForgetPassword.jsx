@@ -1,90 +1,40 @@
-import React, { useState, useEffect } from "react";
-import { Modal, message } from "antd";
+import React from "react";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
-import TShirtImage from "../assets/tshirtbg.png";
-import CapImage from "../assets/capbg.png";
-import BagImage from "../assets/bagbg.png";
-import BottleImage from "../assets/bottlebg.png";
-import headPhone from "../assets/hdbg.png";
-import PointBar from "../components/PointBar";
-import Point from "../assets/star.png";
-import { userId } from "../config";
+import Loader1 from "./Loader1";
 import { useSnackbar } from "notistack";
-import { Spin } from "antd";
 
-function ExchangePoints() {
-  const [selectedGoodie, setSelectedGoodie] = useState(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [address, setAddress] = useState("");
+import Bot from "../assets/robot.png";
+
+
+function ForgetPassword() {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState("");
   const { enqueueSnackbar } = useSnackbar();
   const [loading, setLoading] = useState(false);
 
-  const goodies = [
-    { name: "Headphone", image: headPhone, cost: 5000 },
-    { name: "T-Shirt", image: TShirtImage, cost: 1000 },
-    { name: "Bag", image: BagImage, cost: 800 },
-    { name: "Cap", image: CapImage, cost: 500 },
-    { name: "Bottle", image: BottleImage, cost: 300 },
-    // Add more goodies as needed
-  ];
+  const handleForgetPassword = async (e) => {
+    e.preventDefault();
 
-  const handleExchange = (goodie) => {
-    setSelectedGoodie(goodie);
-    setIsModalVisible(true);
-  };
-
-  const handleModalOk = async () => {
     try {
       setLoading(true);
-      const response = await axios.post(
-        "http://localhost:5555/api/exchange/goodies",
-        {
-          userId,
-          goodieName: selectedGoodie.name,
-          goodiePoints: selectedGoodie.cost,
-          address,
-        }
-      );
 
-      console.log(response.status);
+      await axios.post("http://localhost:5555/api/forget-password", { email });
 
-      if (response.status === 200) {
-        enqueueSnackbar(
-          "Goodie exchanged successfully. Check your email for details.",
-          { variant: "success" }
-        );
-      } else {
-        enqueueSnackbar("Failed to exchange goodie. Please try again.", {
-          variant: "error",
-        });
-      }
+      enqueueSnackbar("Password reset link sent to your email!", { variant: "info" });
+      navigate("/login");
     } catch (error) {
-      if (error.response && error.response.status === 400) {
-        enqueueSnackbar("Insufficient points.", { variant: "error" });
-      } else if (error.response && error.response.status === 404) {
-        enqueueSnackbar("User not found. Please login.", { variant: "error" });
-      } else {
-        enqueueSnackbar("Something went wrong. Please try again.", {
-          variant: "error",
-        });
-      }
+      enqueueSnackbar("Something went wrong. Please try again.", { variant: "error" });
     } finally {
       setLoading(false);
-      setIsModalVisible(false);
-      setAddress('')
     }
   };
 
-  const handleModalCancel = () => {
-    setIsModalVisible(false);
-  };
-
   return (
-    <div className="h-screen w-full bg-gray-900 p-8 pt-0 overflow-y-scroll">
-      <PointBar />
-
+    <section className="relative h-[100vh] bg-[#151719] text-white overflow-hidden">
       <div
-        className="fixed top-0 right-0 max-w-6xl mx-auto h-0 pointer-events-none"
+        className="relative max-w-6xl mx-auto h-0 pointer-events-none"
         aria-hidden="true"
       >
         <svg
@@ -115,70 +65,55 @@ function ExchangePoints() {
         </svg>
       </div>
 
-      <div className=" relative flex flex-wrap justify-start pt-20">
-        {goodies.map((goodie) => (
-          <div
-            key={goodie.name}
-            className="m-4 p-4 bg-gray-200 rounded-lg shadow-md w-52"
-          >
-            <img
-              src={goodie.image}
-              alt={goodie.name}
-              className="w-32 h-32 mx-auto"
-            />
-            <p className="text-center mt-2 font-semibold">{goodie.name}</p>
-            <p className="text-center flex items-center justify-center gap-1">
-              Cost: {goodie.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
-            </p>
-            <button
-              onClick={() => handleExchange(goodie)}
-              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md w-full"
-            >
-              Exchange
-            </button>
+      <div className="flex items-center justify-center px-4 py-10 sm:px-6 sm:py-16 lg:px-8 lg:py-24">
+        <div className="xl:mx-auto xl:w-full xl:max-w-sm 2xl:max-w-md">
+          <div className="mb-2 flex justify-center">
+            <img src={Bot} alt="logo" className="w-9 h-9 mr-2 invert" />
           </div>
-        ))}
+          <h2 className="text-center text-2xl font-bold leading-tight">
+            Forgot Password 
+          </h2>
+          <p className="mt-2 text-center text-sm text-gray-400">
+            Don&apos;t worry, reset link will be sent to your email.{" "}
+          </p>
+          <form onSubmit={handleForgetPassword} className="mt-8">
+            <div className="space-y-5">
+              <div>
+                <label htmlFor="" className="text-base font-medium">
+                  {" "}
+                  Email address{" "}
+                </label>
+                <div className="mt-2">
+                  <input
+                    className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                    type="email"
+                    placeholder="Email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center rounded-md bg-[#5d5dfe] grad-btn hover:bg-[#4B4ACF] px-3.5 py-2.5 font-semibold leading-7 text-white disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <Loader1/>
+                  ) : (
+                    "Send Reset Link"
+                  )}
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
       </div>
-
-      <Modal
-        title="Confirm Exchange"
-        open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
-      >
-        {!loading ? (
-          <div className="text-center">
-            <img
-              src={selectedGoodie?.image}
-              alt={selectedGoodie?.name}
-              className="w-40 h-40 mx-auto mb-4"
-            />
-            <p>{selectedGoodie?.name}</p>
-            <p className="flex items-center justify-center">
-              Cost: {selectedGoodie?.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
-            </p>
-            <p>Are you sure you want to exchange?</p>
-            <input
-              type="text"
-              placeholder="Enter your address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full p-2 mt-4 border border-gray-300 rounded-md"
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center">
-            <Spin size="large" />
-            <p className="mt-4">
-              Processing your order
-            </p>
-          </div>
-        )}
-      </Modal>
-    </div>
+    </section>
   );
 }
 
-export default ExchangePoints;
+export default ForgetPassword;

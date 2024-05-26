@@ -1,90 +1,127 @@
 import React, { useState, useEffect } from "react";
-import { Modal, message } from "antd";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Radio, Modal } from "antd";
+import { Clock, XCircle, CheckCircle } from "lucide-react";
+import AceEditor from "react-ace";
 import axios from "axios";
-import TShirtImage from "../assets/tshirtbg.png";
-import CapImage from "../assets/capbg.png";
-import BagImage from "../assets/bagbg.png";
-import BottleImage from "../assets/bottlebg.png";
-import headPhone from "../assets/hdbg.png";
-import PointBar from "../components/PointBar";
-import Point from "../assets/star.png";
 import { userId } from "../config";
-import { useSnackbar } from "notistack";
+
+import "ace-builds/src-noconflict/mode-javascript";
+import "ace-builds/src-noconflict/theme-monokai";
+
 import { Spin } from "antd";
+import { useSnackbar } from "notistack";
 
-function ExchangePoints() {
-  const [selectedGoodie, setSelectedGoodie] = useState(null);
+const Assessment = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const { questions, topic, difficulty } = location.state;
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [timer, setTimer] = useState(0);
+  const [practiceAnswers, setPracticeAnswers] = useState({});
   const [isModalVisible, setIsModalVisible] = useState(false);
-  const [address, setAddress] = useState("");
+  const [isEvaluating, setIsEvaluating] = useState(false);
+
   const { enqueueSnackbar } = useSnackbar();
-  const [loading, setLoading] = useState(false);
 
-  const goodies = [
-    { name: "Headphone", image: headPhone, cost: 5000 },
-    { name: "T-Shirt", image: TShirtImage, cost: 1000 },
-    { name: "Bag", image: BagImage, cost: 800 },
-    { name: "Cap", image: CapImage, cost: 500 },
-    { name: "Bottle", image: BottleImage, cost: 300 },
-    // Add more goodies as needed
-  ];
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimer((prevTimer) => prevTimer + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-  const handleExchange = (goodie) => {
-    setSelectedGoodie(goodie);
+  const handleOptionChange = (questionIndex, option) => {
+    setSelectedOptions((prev) => ({
+      ...prev,
+      [questionIndex]: option,
+    }));
+  };
+
+  const handlePracticeAnswerChange = (questionIndex, value) => {
+    setPracticeAnswers((prev) => ({
+      ...prev,
+      [questionIndex]: value,
+    }));
+  };
+
+  const showModal = () => {
     setIsModalVisible(true);
   };
 
-  const handleModalOk = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.post(
-        "http://localhost:5555/api/exchange/goodies",
-        {
-          userId,
-          goodieName: selectedGoodie.name,
-          goodiePoints: selectedGoodie.cost,
-          address,
-        }
-      );
-
-      console.log(response.status);
-
-      if (response.status === 200) {
-        enqueueSnackbar(
-          "Goodie exchanged successfully. Check your email for details.",
-          { variant: "success" }
-        );
-      } else {
-        enqueueSnackbar("Failed to exchange goodie. Please try again.", {
-          variant: "error",
-        });
-      }
-    } catch (error) {
-      if (error.response && error.response.status === 400) {
-        enqueueSnackbar("Insufficient points.", { variant: "error" });
-      } else if (error.response && error.response.status === 404) {
-        enqueueSnackbar("User not found. Please login.", { variant: "error" });
-      } else {
-        enqueueSnackbar("Something went wrong. Please try again.", {
-          variant: "error",
-        });
-      }
-    } finally {
-      setLoading(false);
-      setIsModalVisible(false);
-      setAddress('')
-    }
+  const handleOk = () => {
+    setIsModalVisible(false);
+    navigate("/dashboard");
   };
 
-  const handleModalCancel = () => {
+  const handleCancel = () => {
     setIsModalVisible(false);
   };
 
-  return (
-    <div className="h-screen w-full bg-gray-900 p-8 pt-0 overflow-y-scroll">
-      <PointBar />
+  const handleSubmitTest = async () => {
+    clearInterval(timer);
+    const formattedQuestions = {
+      userId,
+      topic: topic,
+      difficulty: difficulty,
+      timeTaken: formatTime(timer),
+      questions: {
+        quizQuestions: questions.quizQuestions.map((question, index) => ({
+          ...question,
+          userAnswer: selectedOptions[index] || "",
+        })),
+        practiceQuestions: questions.practiceQuestions.map(
+          (question, index) => ({
+            ...question,
+            userAnswer: practiceAnswers[index] || "",
+          })
+        ),
+      },
+    };
 
+    setIsEvaluating(true);
+
+    console.log(formattedQuestions);
+
+    try {
+      const response = await axios.post(
+        "http://localhost:5555/api/assessments/evaluate",
+        formattedQuestions,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        const result = response.data;
+        console.log(result);
+        setIsEvaluating(false);
+        enqueueSnackbar("Test Evaluated.", {
+          variant: "success",
+        });
+        navigate(`/result/${result.assessmentId}`);
+      } else {
+        console.error("Error submitting the test");
+        enqueueSnackbar("Something went wrong. Please try again.", {
+          variant: "error",
+        });
+        setIsEvaluating(false);
+      }
+    } catch (error) {
+      console.error("Error submitting the test", error);
+      enqueueSnackbar("Something went wrong. Please try again.", {
+        variant: "error",
+      });
+      setIsEvaluating(false);
+    }
+  };
+
+  return (
+    <div className="relative h-screen bg-gray-900 overflow-x-hidden">
       <div
-        className="fixed top-0 right-0 max-w-6xl mx-auto h-0 pointer-events-none"
+        className="relative max-w-6xl mx-auto h-0 pointer-events-none"
         aria-hidden="true"
       >
         <svg
@@ -115,70 +152,131 @@ function ExchangePoints() {
         </svg>
       </div>
 
-      <div className=" relative flex flex-wrap justify-start pt-20">
-        {goodies.map((goodie) => (
-          <div
-            key={goodie.name}
-            className="m-4 p-4 bg-gray-200 rounded-lg shadow-md w-52"
+      <div className=" relative flex items-center justify-between px-6 py-3 my-3 mt-5 max-w-4xl mx-auto bg-white  shadow-md rounded-lg">
+        <h1 className="topic text-2xl font-semibold text-gray-800">
+          <span className="text-blue-600">Topic:</span> {topic}
+        </h1>
+        <div className="timer flex items-center">
+          <Clock className="mr-2 text-blue-600" />
+          <span className="text-lg font-semibold">{formatTime(timer)}</span>
+        </div>
+      </div>
+      <div className="assessment-container relative p-6 max-w-4xl mx-auto mb-5 bg-white  shadow-md rounded-lg">
+        <div className="quiz-section mb-8">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            Quiz Questions
+          </h2>
+          {questions.quizQuestions.map((question, index) => (
+            <div key={index} className="mb-4">
+              <p className="mb-2 text-blue-600 font-semibold">
+                {index + 1}. {question.question}
+              </p>
+              <Radio.Group
+                onChange={(e) => handleOptionChange(index, e.target.value)}
+                value={selectedOptions[index]}
+              >
+                {question.options.map((option, optionIndex) => (
+                  <Radio
+                    key={optionIndex}
+                    value={option}
+                    className="mb-2 block text-gray-700"
+                  >
+                    {option}
+                  </Radio>
+                ))}
+              </Radio.Group>
+            </div>
+          ))}
+        </div>
+
+        <div className="practice-section mb-8">
+          <h2 className="text-xl font-semibold text-gray-700 mb-2">
+            Practice Questions
+          </h2>
+          {questions.practiceQuestions.map((practiceQuestion, index) => (
+            <div key={index} className="mb-6">
+              <div className="flex gap-1 text-blue-600 font-semibold">
+                <span>{index + 1}.</span>
+                <div
+                  className="mb-4 text-blue-600 font-semibold"
+                  dangerouslySetInnerHTML={{
+                    __html: practiceQuestion.question,
+                  }}
+                />
+              </div>
+              <AceEditor
+                mode="javascript"
+                theme="monokai"
+                name={`practiceEditor-${index}`}
+                value={practiceAnswers[index] || ""}
+                onChange={(value) => handlePracticeAnswerChange(index, value)}
+                fontSize={14}
+                showPrintMargin={true}
+                showGutter={true}
+                highlightActiveLine={true}
+                setOptions={{
+                  enableBasicAutocompletion: true,
+                  enableLiveAutocompletion: true,
+                  enableSnippets: true,
+                  showLineNumbers: true,
+                  tabSize: 2,
+                }}
+                style={{ width: "100%", height: "200px" }}
+              />
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-between">
+          <button
+            className="bg-red-500 text-white px-4 py-2 rounded-md flex items-center hover:bg-red-600 transition"
+            onClick={showModal}
           >
-            <img
-              src={goodie.image}
-              alt={goodie.name}
-              className="w-32 h-32 mx-auto"
-            />
-            <p className="text-center mt-2 font-semibold">{goodie.name}</p>
-            <p className="text-center flex items-center justify-center gap-1">
-              Cost: {goodie.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
-            </p>
-            <button
-              onClick={() => handleExchange(goodie)}
-              className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-md w-full"
-            >
-              Exchange
-            </button>
-          </div>
-        ))}
+            <XCircle className="mr-2" />
+            End Test
+          </button>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded-md flex items-center hover:bg-blue-600 transition"
+            onClick={handleSubmitTest}
+          >
+            <CheckCircle className="mr-2" />
+            Submit Test
+          </button>
+        </div>
       </div>
 
       <Modal
-        title="Confirm Exchange"
+        title="Confirm End Test"
         open={isModalVisible}
-        onOk={handleModalOk}
-        onCancel={handleModalCancel}
+        onOk={handleOk}
+        onCancel={handleCancel}
       >
-        {!loading ? (
-          <div className="text-center">
-            <img
-              src={selectedGoodie?.image}
-              alt={selectedGoodie?.name}
-              className="w-40 h-40 mx-auto mb-4"
-            />
-            <p>{selectedGoodie?.name}</p>
-            <p className="flex items-center justify-center">
-              Cost: {selectedGoodie?.cost}{" "}
-              <img src={Point} alt="" className="w-[18px] h-[18px] coin-svg" />
-            </p>
-            <p>Are you sure you want to exchange?</p>
-            <input
-              type="text"
-              placeholder="Enter your address"
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              className="w-full p-2 mt-4 border border-gray-300 rounded-md"
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col items-center justify-center">
-            <Spin size="large" />
-            <p className="mt-4">
-              Processing your order
-            </p>
-          </div>
-        )}
+        <p>Are you sure you want to end the test? All progress will be lost.</p>
+      </Modal>
+
+      <Modal
+        title="Evaluating Test"
+        open={isEvaluating}
+        footer={null}
+        closable={false}
+      >
+        <div className="flex flex-col items-center justify-center">
+          <Spin size="large" />
+          <p className="mt-4">
+            Test is being evaluated. Result will be generated in a moment.
+          </p>
+        </div>
       </Modal>
     </div>
   );
-}
+};
 
-export default ExchangePoints;
+const formatTime = (time) => {
+  const minutes = Math.floor(time / 60);
+  const seconds = time % 60;
+  return `${minutes.toString().padStart(2, "0")}:${seconds
+    .toString()
+    .padStart(2, "0")}`;
+};
+
+export default Assessment;
