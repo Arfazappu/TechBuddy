@@ -12,6 +12,10 @@ import ExchangePoints from "./pages/ExchangePoints";
 
 import AOS from "aos";
 import "aos/dist/aos.css";
+import ForgetPassword from "./components/ForgetPassword";
+import ResetPassword from "./components/ResetPassword";
+import Assessment from "./pages/Assessment";
+import ResultPage from "./pages/ResultPage";
 
 function App() {
   useEffect(() => {
@@ -25,7 +29,7 @@ function App() {
 
   return (
     <Router>
-      <div>
+      <div >
         <Routes>
           <Route
             path="/"
@@ -59,6 +63,26 @@ function App() {
           />
 
           <Route
+            path="/forget-password"
+            element={
+              <>
+                <Navbar />
+                <ForgetPassword />
+              </>
+            }
+          />
+
+          <Route
+            path="/reset-password/:token"
+            element={
+              <>
+                <Navbar />
+                <ResetPassword />
+              </>
+            }
+          />
+
+          <Route
             path="/dashboard"
             element={
               <div className="flex">
@@ -86,6 +110,8 @@ function App() {
             }
           />
 
+          <Route path="/assessment" element={<Assessment />} />
+          <Route path="/result/:id" element={<ResultPage />} />
         </Routes>
       </div>
     </Router>

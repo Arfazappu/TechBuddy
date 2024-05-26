@@ -2,6 +2,9 @@ import React from "react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import axios from "axios";
+import Loader1 from "./Loader1";
+import { useSnackbar } from "notistack";
 
 import Bot from "../assets/robot.png";
 
@@ -10,18 +13,37 @@ function Login() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
+  const [loading, setLoading] = useState(false)
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e) => {
     e.preventDefault();
 
-    if (email === "test@example.com" && password === "password") {
-      login(email, password);
-      console.log("logged in");
-      navigate("/");
-      setError("");
-    } else {
-      setError("Invalid email or password");
+    try {
+      setLoading(true);
+
+      const loginResponse = await axios.post(
+        "http://localhost:5555/api/login",
+        {
+          email,
+          password,
+        }
+      );
+      if (loginResponse.status === 200) {
+        const { result, token } = loginResponse.data;
+        login(result.email, result._id, token);
+
+        enqueueSnackbar("Loggin in successful!", { variant: "success" });
+        navigate("/");
+      }
+    } catch (error) {
+      if(error.response && error.response.status === 400){
+        enqueueSnackbar("Invalid credentials. Please try again.", { variant: "error" });
+      } else {
+        enqueueSnackbar("Something went wrong. Please try again.", { variant: "error" });
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -79,10 +101,7 @@ function Login() {
           <form onSubmit={handleLogin} className="mt-8">
             <div className="space-y-5">
               <div>
-                <label
-                  htmlFor=""
-                  className="text-base font-medium"
-                >
+                <label htmlFor="" className="text-base font-medium">
                   {" "}
                   Email address{" "}
                 </label>
@@ -93,6 +112,7 @@ function Login() {
                     placeholder="Email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    required
                   />
                 </div>
               </div>
@@ -105,14 +125,13 @@ function Login() {
                     {" "}
                     Password{" "}
                   </label>
-                  <a
-                    href="#"
-                    title=""
+                  <Link
+                    to='/forget-password'
                     className="text-sm font-semibold hover:underline"
                   >
                     {" "}
                     Forgot password?{" "}
-                  </a>
+                  </Link>
                 </div>
                 <div className="mt-2">
                   <input
@@ -121,16 +140,21 @@ function Login() {
                     placeholder="Password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
+                    required
                   />
                 </div>
               </div>
-              {error && <div className="text-red-500">{error}</div>}
               <div>
                 <button
                   type="submit"
-                  className="inline-flex w-full items-center justify-center rounded-md bg-white px-3.5 py-2.5 font-semibold leading-7 text-black hover:bg-gray-300"
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center rounded-md bg-[#5d5dfe] grad-btn hover:bg-[#4B4ACF] px-3.5 py-2.5 font-semibold leading-7 text-white disabled:cursor-not-allowed"
                 >
-                  Get started
+                  {loading ? (
+                    <Loader1/>
+                  ) : (
+                    "Getting Started"
+                  )}
                 </button>
               </div>
             </div>
@@ -144,7 +168,6 @@ function Login() {
       >
         Back
       </Link> */}
-
     </section>
   );
 }

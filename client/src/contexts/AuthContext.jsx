@@ -17,12 +17,12 @@ export const AuthProvider = ({ children }) => {
     JSON.parse(localStorage.getItem("currentUser")) || null
   );
 
-
-  const login = (email, password) => {
+  const login = (email, id, token) => {
     setIsLoggedIn(true);
-    setCurrentUser({ email });
+    setCurrentUser({ email, id, token });
     localStorage.setItem("isLoggedIn", "true");
-    localStorage.setItem("currentUser", JSON.stringify({ email }));
+    localStorage.setItem("currentUser", JSON.stringify({ email, id, token }));
+    localStorage.setItem("authToken",token);
   };
 
   const logout = () => {
@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null);
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("currentUser");
+    localStorage.removeItem("authToken");
   };
 
   return (

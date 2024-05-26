@@ -1,12 +1,30 @@
-import React from "react";
+import React, {useState} from "react";
 import Bot from "../assets/robot.png";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
+import { useSnackbar } from "notistack";
+import { Modal } from "antd";
 
 const Navbar = () => {
   const { isLoggedIn, logout } = useAuth();
+  const [isModalVisible, setIsModalVisible] = useState(false);
 
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
+
+  const showModal = () => {
+    setIsModalVisible(true);
+  };
+
+  const handleOk = () => {
+    setIsModalVisible(false);
+    logout();
+    enqueueSnackbar("Logging out successful!", { variant: "success" });
+  };
+
+  const handleCancel = () => {
+    setIsModalVisible(false);
+  };
 
   return (
     <div
@@ -33,16 +51,18 @@ const Navbar = () => {
               <button
                 type="button"
                 className="rounded-md text-[#5d5dfe] bg-transparent px-3 py-2 text-base font-semibold hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-                onClick={logout}
+                onClick={showModal}
               >
                 Logout
               </button>
-              <button
-                type="button"
-                className="rounded-sm bg-[#5d5dfe] hover:bg-[#4B4ACF] grad-btn border-white px-3 py-2 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-              >
-                <Link to="/dashboard">Dashboard</Link>
-              </button>
+              <Link to="/dashboard">
+                <button
+                  type="button"
+                  className="rounded-sm bg-[#5d5dfe] hover:bg-[#4B4ACF] grad-btn border-white px-3 py-2 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                >
+                  Dashboard
+                </button>
+              </Link>
             </>
           ) : (
             <>
@@ -53,16 +73,30 @@ const Navbar = () => {
                 <Link to="/login">Sign in</Link>
               </button>
 
-              <button
-                type="button"
-                className="rounded-sm bg-[#5d5dfe] hover:bg-[#4B4ACF] grad-btn border-white px-3 py-2 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
-              >
-                <Link to="/signin">Sign up</Link>
-              </button>
+              <Link to="/signin">
+                <button
+                  type="button"
+                  className="rounded-sm bg-[#5d5dfe] hover:bg-[#4B4ACF] grad-btn border-white px-3 py-2 text-base font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black"
+                >
+                  Sign up
+                </button>
+              </Link>
             </>
           )}
         </div>
       </div>
+
+      <Modal
+        title="Confirm Logout"
+        open={isModalVisible}
+        onOk={handleOk}
+        onCancel={handleCancel}
+        okText="Yes"
+        cancelText="No"
+      >
+        <p>Are you sure you want to logout?</p>
+      </Modal>
+
     </div>
   );
 };

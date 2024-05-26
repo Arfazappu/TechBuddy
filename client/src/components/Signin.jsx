@@ -1,9 +1,71 @@
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useSnackbar } from "notistack";
+import { useState } from "react";
+import axios from "axios";
+import { useAuth } from "../contexts/AuthContext";
+import Loader1 from "./Loader1";
+
 
 import Bot from "../assets/robot.png";
 
 function Signin() {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const { login } = useAuth();
+
+  const [loading, setLoading] = useState(false);
+
+  const handleSignUp = async (event) => {
+    event.preventDefault();
+
+    try {
+      setLoading(true);
+      const response = await axios.post("http://localhost:5555/api/register", {
+        username,
+        email,
+        password,
+      });
+
+      if (response.status === 201) {
+        // Automatically login the user
+        const loginResponse = await axios.post(
+          "http://localhost:5555/api/login",
+          {
+            email,
+            password,
+          }
+        );
+        if (loginResponse.status === 200) {
+          const { result, token } = loginResponse.data;
+          login(result.email, result._id, token);
+
+          enqueueSnackbar("Sign up successful!", { variant: "success" });
+          navigate("/");
+        }
+      } else {
+        enqueueSnackbar("Sign up failed, please try again", {
+          variant: "error",
+        });
+      }
+    } catch (error) {
+      if (error.response && error.response.status === 400) {
+        enqueueSnackbar("User already exists", { variant: "error" });
+      } else if (error.response && error.response.status === 401) {
+        enqueueSnackbar("Username is taken", { variant: "error" });
+      } else {
+        enqueueSnackbar("An error occurred during sign up", {
+          variant: "error",
+        });
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="relative bg-[#151719] text-white overflow-hidden">
       <div
@@ -55,7 +117,7 @@ function Signin() {
               Login
             </Link>
           </p>
-          <form action="#" method="POST" className="mt-8">
+          <form className="mt-8" onSubmit={handleSignUp}>
             <div className="space-y-5">
               <div>
                 <label
@@ -63,14 +125,17 @@ function Signin() {
                   className="text-base font-medium text-gray-100"
                 >
                   {" "}
-                  Full Name{" "}
+                  User Name{" "}
                 </label>
                 <div className="mt-2">
                   <input
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                     type="text"
-                    placeholder="Full Name"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Username"
                     id="name"
+                    required
                   ></input>
                 </div>
               </div>
@@ -86,8 +151,11 @@ function Signin() {
                   <input
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                     type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                     placeholder="Email"
                     id="email"
+                    required
                   ></input>
                 </div>
               </div>
@@ -105,17 +173,26 @@ function Signin() {
                   <input
                     className="flex h-10 w-full rounded-md border border-gray-300 bg-transparent px-3 py-2 text-sm placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 focus:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
                     type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Password"
                     id="password"
+                    required
                   ></input>
                 </div>
               </div>
               <div>
                 <button
-                  type="button"
-                  className="inline-flex w-full items-center justify-center rounded-md bg-white px-3.5 py-2.5 font-semibold leading-7 text-black hover:bg-gray-300"
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex w-full items-center justify-center rounded-md bg-[#5d5dfe] grad-btn hover:bg-[#4B4ACF] px-3.5 py-2.5 font-semibold leading-7 text-white disabled:cursor-not-allowed"
                 >
-                  Create Account
+                  {/* Create Account */}
+                  {loading ? (
+                    <Loader1/>
+                  ) : (
+                    "Create Account"
+                  )}
                 </button>
               </div>
             </div>
