@@ -39,12 +39,24 @@ const evaluatePracticeQuestion = async (practiceQuestion) => {
         const cleanedResponse = cleanResponse(evaluationResult);
         console.log('Cleaned content:', cleanedResponse);
 
-        const parsedResponse = JSON.parse(cleanedResponse);
-        console.log('Parsed content:', parsedResponse);
+        // const parsedResponse = JSON.parse(cleanedResponse);
+        // console.log('Parsed content:', parsedResponse);
+
+        // Regular expression to extract the points
+        const pointsRegex = /"points":\s*"(\d+)"/;
+        const pointsMatch = cleanedResponse.match(pointsRegex);
+        const points = pointsMatch ? pointsMatch[1] : null;
+
+        // Regular expression to extract the exampleAnswer
+        const exampleAnswerRegex = /"exampleAnswer":\s*"(.*)"/s;
+        const exampleAnswerMatch = cleanedResponse.match(exampleAnswerRegex);
+        const exampleAnswer = exampleAnswerMatch ? exampleAnswerMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"') : null;
 
         return {
-            points: parsedResponse.points,
-            exampleAnswer: parsedResponse.exampleAnswer.trim()
+            // points: parsedResponse.points,
+            points: points,
+            // exampleAnswer: parsedResponse.exampleAnswer.trim()
+            exampleAnswer: exampleAnswer
         };
     } catch (error) {
         console.error('Error evaluating practice question:', error.message);
@@ -59,18 +71,8 @@ const evaluatePracticeQuestion = async (practiceQuestion) => {
 };
 
 const cleanResponse = (text) => {
-    try {
-        // Replace invalid JSON tokens with spaces
-        const cleanedText = text.replace(/[^ -~]+/g, ' ');
-
-        // Ensure the JSON string is properly formatted
-        const jsonString = cleanedText.trim();
-
-        return jsonString;
-    } catch (error) {
-        console.error('Error cleaning response:', error.message);
-        return '{}'; // Return an empty JSON object if cleaning fails
-    }
+    // Remove asterisks and double underscores from the text
+    return text.replace(/[*_]+/g, '');
 };
 
 

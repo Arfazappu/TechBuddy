@@ -12,6 +12,10 @@ import siddi from "../assets/siddi_dummy.png";
 import contributor from "../assets/user.png";
 import { ArrowUpRight, Sparkles } from "lucide-react";
 
+import video1 from "../assets/video1.mp4";
+import video2 from "../assets/video2.mp4";
+import video3 from "../assets/video3.mp4";
+
 const Home = () => {
   const { isLoggedIn } = useAuth();
   const navigate = useNavigate();
@@ -129,7 +133,7 @@ const Home = () => {
                 className="inline-flex h-10 items-center justify-center rounded-sm bg-gray-700 px-8 py-3 text-md font-semibold text-gray-50 shadow-sm transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-300 disabled:pointer-events-none disabled:opacity-50"
                 onClick={() =>
                   scrollTo({
-                    top: 800,
+                    top: 1100,
                     left: 100,
                     behavior: "smooth",
                   })
@@ -244,22 +248,40 @@ const Home = () => {
                     </p>
                   </div>
                   <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                    <Link
+                    <button
                       className="inline-flex h-10 items-center justify-center rounded-sm bg-gray-700 px-8 py-3 text-md font-semibold text-gray-50 shadow-sm transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-300 disabled:pointer-events-none disabled:opacity-50"
-                      href="#"
+                      onClick={() =>
+                        scrollTo({
+                          top: 1700,
+                          left: 100,
+                          behavior: "smooth",
+                        })
+                      }
                     >
                       Learn More
-                    </Link>
+                    </button>
                   </div>
                 </div>
                 <div className="grid gap-4" data-aos="fade-up">
-                  <img
+                  {/* <img
                     alt="Interactive Lessons"
                     className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full lg:order-last"
                     height="310"
                     src={placeholder}
                     width="550"
-                  />
+                  /> */}
+
+                  <video
+                    className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+                    height="310"
+                    width="550"
+                    autoPlay
+                    loop
+                    muted
+                  >
+                    <source src={video1} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               </div>
             </div>
@@ -294,13 +316,25 @@ const Home = () => {
             <div className="container relative px-4 md:px-6">
               <div className="grid items-center gap-6 lg:grid-cols-2 lg:gap-12 xl:grid-cols-[550px_1fr]">
                 <div data-aos="fade-up">
-                  <img
+                  {/* <img
                     alt="Personalized Feedback"
                     className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
                     height="310"
                     src={placeholder}
                     width="550"
-                  />
+                  /> */}
+
+                  <video
+                    className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+                    height="310"
+                    width="550"
+                    autoPlay
+                    loop
+                    muted
+                  >
+                    <source src={video2} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
                 <div
                   className="flex flex-col justify-center space-y-6"
@@ -320,12 +354,18 @@ const Home = () => {
                     </p>
                   </div>
                   <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                    <Link
+                  <button
                       className="inline-flex h-10 items-center justify-center rounded-sm bg-gray-700 px-8 py-3 text-md font-semibold text-gray-50 shadow-sm transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-300 disabled:pointer-events-none disabled:opacity-50"
-                      href="#"
+                      onClick={() =>
+                        scrollTo({
+                          top: 2200,
+                          left: 100,
+                          behavior: "smooth",
+                        })
+                      }
                     >
                       Learn More
-                    </Link>
+                    </button>
                   </div>
                 </div>
               </div>
@@ -379,22 +419,40 @@ const Home = () => {
                     </p>
                   </div>
                   <div className="flex flex-col gap-3 min-[400px]:flex-row">
-                    <Link
+                  <button
                       className="inline-flex h-10 items-center justify-center rounded-sm bg-gray-700 px-8 py-3 text-md font-semibold text-gray-50 shadow-sm transition-colors hover:bg-gray-800 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-300 disabled:pointer-events-none disabled:opacity-50"
-                      href="#"
+                      onClick={() =>
+                        scrollTo({
+                          top: 2700,
+                          left: 100,
+                          behavior: "smooth",
+                        })
+                      }
                     >
                       Learn More
-                    </Link>
+                    </button>
                   </div>
                 </div>
                 <div data-aos="fade-up">
-                  <img
+                  {/* <img
                     alt="Progress Tracking"
                     className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
                     height="310"
                     src={placeholder}
                     width="550"
-                  />
+                  /> */}
+
+                  <video
+                    className="mx-auto aspect-video overflow-hidden rounded-xl object-cover object-center sm:w-full"
+                    height="310"
+                    width="550"
+                    autoPlay
+                    loop
+                    muted
+                  >
+                    <source src={video3} type="video/mp4" />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
               </div>
             </div>

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const generateSingleQuestion = async (topic, difficulty) => {
-    const apikey = process.env.OPENAI_API_KEY;
+    const apikey = process.env.OPENAI_API_KEY; 
     try {
         const response = await axios.post('https://api.pawan.krd/pai-001-light/v1/chat/completions', {
             model: 'gpt-3.5-unfiltered',
@@ -34,10 +34,14 @@ const generateSingleQuestion = async (topic, difficulty) => {
             },
         });
 
+        // console.log('Full response from API:', response.data);
+
         let generatedText = response.data.choices[0]?.message.content.trim() || '';
 
         // Clean the response to remove any unexpected characters
         generatedText = cleanResponse(generatedText);
+
+        console.log("cleaned:",generatedText);
 
         // Attempt to parse the response to ensure it is valid JSON
         try {
