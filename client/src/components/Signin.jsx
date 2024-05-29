@@ -200,12 +200,7 @@ function Signin() {
         </div>
       </div>
 
-      {/* <Link
-        to="/"
-        className="fixed top-4 left-4 bg-gray-900 text-white px-3 py-1 rounded-md hover:bg-gray-800 transition-all duration-200"
-      >
-        Back
-      </Link> */}
+
     </section>
   );
 }

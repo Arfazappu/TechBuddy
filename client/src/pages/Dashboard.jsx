@@ -154,6 +154,11 @@ function Dashboard() {
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             disabled={isLoading}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                handleSend(message);
+              }
+            }}
           />
           <select
             value={difficulty}
